@@ -1,24 +1,48 @@
-import java.util.List;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+from kafka import KafkaConsumer, TopicPartition
+from kafka.errors import KafkaError
+import sys
 
-public void process(org.apache.camel.Exchange exchange) throws Exception {
-    List<ConsumerRecord<?, ?>> records = (List<ConsumerRecord<?, ?>>) exchange.getIn().getBody(List.class);
-    long totalBytes = 0;
+# Configuration Kafka (à adapter à ton environnement)
+BOOTSTRAP_SERVERS = ['localhost:9092']  # remplace par ton bootstrap
+TOPIC_NAME = 'ton_topic'  # remplace par ton topic
 
-    if (records != null) {
-        for (ConsumerRecord<?, ?> record : records) {
-            Object value = record.value();
-            if (value instanceof byte[]) {
-                totalBytes += ((byte[]) value).length;
-            } else if (value instanceof String) {
-                totalBytes += ((String) value).getBytes("UTF-8").length;
-            } else if (value != null) {
-                // fallback : on essaie de convertir en bytes
-                totalBytes += value.toString().getBytes("UTF-8").length;
-            }
-        }
-    }
+def main():
+    try:
+        consumer = KafkaConsumer(
+            bootstrap_servers=BOOTSTRAP_SERVERS,
+            enable_auto_commit=False
+        )
 
-    double totalKo = totalBytes / 1024.0;
-    System.out.printf("Taille totale des messages dans le batch : %.2f Ko%n", totalKo);
-}
+        # Récupération des partitions du topic
+        partitions = consumer.partitions_for_topic(TOPIC_NAME)
+        if partitions is None:
+            print(f"Le topic '{TOPIC_NAME}' n'existe pas ou n'est pas accessible.")
+            return
+
+        for partition in partitions:
+            tp = TopicPartition(TOPIC_NAME, partition)
+            # Attribution des partitions au consumer (obligatoire pour accéder aux offsets)
+            consumer.assign([tp])
+            # Aller à la fin du topic pour récupérer le dernier offset
+            consumer.seek_to_end(tp)
+            latest_offset = consumer.position(tp)
+
+            if latest_offset == 0:
+                print(f"Partition {partition}: aucun message")
+                continue
+
+            # Lire le dernier message pour en extraire le timestamp
+            consumer.seek(tp, latest_offset - 1)
+            msg = next(consumer)
+
+            print(f"Partition {partition} - Dernier offset: {latest_offset - 1} - Timestamp: {msg.timestamp}")
+
+    except KafkaError as e:
+        print(f"Erreur Kafka: {e}")
+    except Exception as e:
+        print(f"Erreur: {e}")
+    finally:
+        consumer.close()
+
+if __name__ == '__main__':
+    main()
