@@ -1,11 +1,24 @@
 import java.util.List;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-// Récupère le corps du message, qui doit être une liste de ConsumerRecord
-List<?> records = exchange.getIn().getBody(List.class);
+public void process(org.apache.camel.Exchange exchange) throws Exception {
+    List<ConsumerRecord<?, ?>> records = (List<ConsumerRecord<?, ?>>) exchange.getIn().getBody(List.class);
+    long totalBytes = 0;
 
-// Vérifie s'il y a bien une liste, et affiche sa taille
-if (records != null) {
-    System.out.println("Nombre de messages reçus dans le batch : " + records.size());
-} else {
-    System.out.println("Aucun message reçu dans ce batch.");
+    if (records != null) {
+        for (ConsumerRecord<?, ?> record : records) {
+            Object value = record.value();
+            if (value instanceof byte[]) {
+                totalBytes += ((byte[]) value).length;
+            } else if (value instanceof String) {
+                totalBytes += ((String) value).getBytes("UTF-8").length;
+            } else if (value != null) {
+                // fallback : on essaie de convertir en bytes
+                totalBytes += value.toString().getBytes("UTF-8").length;
+            }
+        }
+    }
+
+    double totalKo = totalBytes / 1024.0;
+    System.out.printf("Taille totale des messages dans le batch : %.2f Ko%n", totalKo);
 }
