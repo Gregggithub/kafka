@@ -1,0 +1,9 @@
+// Récupère le corps du message, qui doit être une liste de ConsumerRecord
+List<?> records = exchange.getIn().getBody(List.class);
+
+// Vérifie s'il y a bien une liste, et affiche sa taille
+if (records != null) {
+    System.out.println("Nombre de messages reçus dans le batch : " + records.size());
+} else {
+    System.out.println("Aucun message reçu dans ce batch.");
+}
