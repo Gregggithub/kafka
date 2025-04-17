@@ -1,3 +1,5 @@
+import java.util.List;
+
 // Récupère le corps du message, qui doit être une liste de ConsumerRecord
 List<?> records = exchange.getIn().getBody(List.class);
 
