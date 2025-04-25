@@ -1,0 +1,42 @@
+Kafka Connect avec MirrorMaker 2 est une solution de réplication intégrée à l’écosystème Kafka, conçue pour répliquer automatiquement les topics, les schémas, les offsets de consommation et même les ACLs entre deux clusters Kafka. Basé sur Kafka Connect, il s'appuie sur un ensemble de connecteurs dédiés (MirrorSourceConnector, MirrorCheckpointConnector, MirrorHeartbeatConnector) qui peuvent être déployés dans un cluster Kafka Connect. Il est particulièrement adapté aux environnements distribués où la haute disponibilité, la tolérance aux pannes et l’observabilité sont essentielles. Sa configuration repose sur des fichiers YAML ou des appels REST, et il permet une réplication fine grâce à des règles de filtrage (regex). MirrorMaker 2 offre également un bon niveau de résilience avec le suivi automatique des offsets et une intégration native avec des outils de monitoring comme Prometheus ou Grafana.
+
+L’architecture de **Kafka Connect avec MirrorMaker 2** repose sur un **cluster Kafka Connect** dans lequel sont déployés trois types de connecteurs :  
+- le **MirrorSourceConnector** pour la réplication des topics depuis le cluster source vers le cluster cible,  
+- le **MirrorCheckpointConnector** pour synchroniser les offsets des consommateurs entre clusters,  
+- le **MirrorHeartbeatConnector** pour vérifier la connectivité entre les clusters.
+
+Ce cluster Kafka Connect agit comme un pont entre deux clusters Kafka indépendants (source et destination), chacun pouvant avoir sa propre configuration (authentification, partitions, etc.). Les connecteurs utilisent des topics internes (checkpoints, heartbeats, metadata) pour assurer la continuité, la reprise après incident et la supervision de la réplication. Le tout est orchestré dans un environnement scalable, permettant d’ajuster dynamiquement le nombre de workers Kafka Connect pour gérer la charge.
+Tu devrais utiliser Kafka Connect avec MirrorMaker 2 si tu cherches une solution de réplication Kafka complète, robuste et maintenable dans le temps. Voici pourquoi :
+
+Automatisation native : MirrorMaker 2 gère automatiquement la création, la synchronisation et la mise à jour des topics, des schémas et des offsets, sans avoir besoin de coder des processus spécifiques.
+
+Haute résilience : Grâce à la gestion des offsets et aux mécanismes de heartbeat et checkpoint, il garantit la continuité même en cas de coupures réseau ou de défaillances partielles.
+
+Flexibilité : Tu peux choisir de tout répliquer ou filtrer finement par namespace ou par regex sur les topics, ce qui permet d’adapter la réplication aux besoins précis de ton projet.
+
+Interopérabilité : Il est indépendant des versions exactes des clusters Kafka source et destination, ce qui est utile si tu fais des migrations ou des duplications inter-data centers.
+
+Scalabilité et supervision : Déployé sur un cluster Kafka Connect, il peut s'adapter à des volumes croissants de données et être monitoré facilement avec Prometheus, Grafana ou Confluent Control Center.
+
+Standardisation : Tu restes dans l'écosystème Kafka officiel, sans ajouter de dépendances spécifiques ou de développements personnalisés compliqués à maintenir.
+
+👉 En résumé : tu utilises Kafka Connect avec MirrorMaker 2 quand tu veux une réplication fiable, évolutive et alignée avec les bonnes pratiques Kafka, sans réinventer la roue.
+
+
+Solution native Kafka : pas de dépendance externe, bien intégrée à l’écosystème.
+
+Réplication automatique : topics, offsets, heartbeats, metadata.
+
+Scalabilité : s’appuie sur Kafka Connect, donc facilement déployable en cluster.
+
+Filtrage flexible : inclusion/exclusion par regex.
+
+Monitoring intégré : compatible Prometheus, Grafana, Confluent Control Center.
+
+Tolérance aux pannes : gestion automatique des offsets et reprise après incident.
+
+Multi-cluster : pensée pour les architectures cross-data center ou hybride.
+
+
+
+Kafka Connect avec MirrorMaker 2 est une solution de réplication inter-cluster basée sur le framework Kafka Connect, qui exploite des connecteurs spécialisés pour assurer la duplication des topics, la synchronisation des offsets et le monitoring de la connectivité via des topics internes (__mm2-...). Chaque connecteur — MirrorSourceConnector, MirrorCheckpointConnector et MirrorHeartbeatConnector — utilise le Kafka Connect framework distribué, avec gestion centralisée des offsets, tolérance aux pannes via offset backing store, et possibilité de parallélisation des tâches via des workers multi-threadés. MM2 repose sur un mécanisme de renommage des topics (par défaut sourceCluster.topicName) pour éviter les collisions, et intègre un système de checkpoints de consommation pour permettre aux consommateurs de migrer entre clusters tout en conservant leur position. Il supporte les protocoles de sécurité Kafka (SSL, SASL, PLAINTEXT) et peut fonctionner avec des clusters aux configurations hétérogènes. Enfin, il s'intègre naturellement à l'écosystème Kafka (Prometheus, Grafana, Confluent Control Center) et s’administre dynamiquement via l’API REST de Kafka Connect.
