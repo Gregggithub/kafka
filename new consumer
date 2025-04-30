@@ -1,9 +1,34 @@
-try:
-    for message in consumer:
-        ts = datetime.fromtimestamp(message.timestamp / 1000.0)
-        logging.info(
-            f"Partition: {message.partition}, Offset: {message.offset}, Timestamp: {ts}, Valeur: {message.value.decode('utf-8')}"
-        )
-    logging.info("Aucun nouveau message après 10 secondes. Fin du script.")
-finally:
-    consumer.close()
+from kafka import KafkaConsumer, TopicPartition
+
+TOPIC = 'mon-topic'
+BOOTSTRAP_SERVERS = ['localhost:9092']
+
+# Étape 1 : créer un consumer temporaire pour découvrir les partitions
+temp_consumer = KafkaConsumer(
+    bootstrap_servers=BOOTSTRAP_SERVERS
+)
+partitions = temp_consumer.partitions_for_topic(TOPIC)
+temp_consumer.close()
+
+if not partitions:
+    raise Exception(f"Aucune partition trouvée pour le topic {TOPIC}")
+
+# Étape 2 : créer les TopicPartition pour toutes les partitions
+topic_partitions = [TopicPartition(TOPIC, p) for p in partitions]
+
+# Étape 3 : créer un consumer assigné à toutes les partitions
+consumer = KafkaConsumer(
+    bootstrap_servers=BOOTSTRAP_SERVERS,
+    enable_auto_commit=False,
+    auto_offset_reset='earliest',
+    isolation_level='read_committed'
+)
+consumer.assign(topic_partitions)
+
+# Étape 4 : lecture des messages
+compteur = 0
+for msg in consumer:
+    compteur += 1
+    print(f"[Partition {msg.partition} | Offset {msg.offset}] {msg.value.decode()}")
+
+print(f"\nNombre total de messages lus : {compteur}")
