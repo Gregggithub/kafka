@@ -1,0 +1,60 @@
+from kafka import KafkaConsumer, TopicPartition
+from kafka.errors import KafkaError
+import logging
+
+# Configuration du logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Configuration du Kafka Consumer
+bootstrap_servers = ['localhost:9092']
+group_id = 'offset-inspector'
+topic_list = ['mon-topic']  # Liste de topics à inspecter
+
+try:
+    consumer = KafkaConsumer(
+        bootstrap_servers=bootstrap_servers,
+        group_id=group_id,
+        enable_auto_commit=False,
+        isolation_level='read_committed',  # Important pour read_committed
+        consumer_timeout_ms=5000,
+        value_deserializer=lambda x: x  # Pas de désérialisation ici
+    )
+
+    for topic in topic_list:
+        # Récupération des partitions
+        partitions = consumer.partitions_for_topic(topic)
+        if partitions is None:
+            logger.warning(f"Aucune partition trouvée pour le topic {topic}")
+            continue
+
+        topic_partitions = [TopicPartition(topic, p) for p in partitions]
+
+        # Affectation des partitions au consumer
+        consumer.assign(topic_partitions)
+
+        # Requête pour les offsets de fin (log-end-offsets)
+        end_offsets = consumer.end_offsets(topic_partitions)
+
+        # Recherche du timestamp associé à chaque offset de fin
+        for tp in topic_partitions:
+            offset = end_offsets[tp]
+
+            if offset == 0:
+                # Pas de message dans la partition
+                logger.info(f"Topic: {tp.topic}, Partition: {tp.partition}, Offset: 0 (empty), Timestamp: N/A")
+                continue
+
+            # Pour obtenir le timestamp du dernier offset, on lit l'offset précédent
+            consumer.seek(tp, offset - 1)
+            record = next(consumer)
+
+            logger.info(
+                f"Topic: {tp.topic}, Partition: {tp.partition}, "
+                f"Offset: {record.offset}, Timestamp: {record.timestamp}"
+            )
+
+except KafkaError as e:
+    logger.error(f"Erreur Kafka: {e}")
+finally:
+    consumer.close()
