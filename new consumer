@@ -1,17 +1,9 @@
-# Verifier les offsets
-partitions = consumer.partitions_for_topic(topic)
-if partitions:
-    for partition in partitions:
-        tp = TopicPartition(topic, partition)
-        consumer.assign([tp])
-        end_offset = consumer.position(tp)
-        logger.info(f"Partition: {partition}, End offset: {end_offset}")
-
 try:
     for message in consumer:
-        logger.info(f"Message reçu: Offset={message.offset}, Timestamp={message.timestamp}")
-        consumer.commit()  # Commit explicite après lecture
-except KafkaError as e:
-    logger.error(f"Erreur Kafka: {e}")
+        ts = datetime.fromtimestamp(message.timestamp / 1000.0)
+        logging.info(
+            f"Partition: {message.partition}, Offset: {message.offset}, Timestamp: {ts}, Valeur: {message.value.decode('utf-8')}"
+        )
+    logging.info("Aucun nouveau message après 10 secondes. Fin du script.")
 finally:
     consumer.close()
