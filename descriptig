@@ -1,26 +1,37 @@
-1. Nature de la Réplication dans MM2
-MM2 a été conçu pour effectuer la réplication des messages d'un cluster Kafka source à un cluster Kafka cible de manière relativement simple et performante. Il ne s'appuie pas sur les transactions Kafka de manière native pour la gestion des écritures et des offsets.
+Lorsque le producteur envoie des messages en mode transactionnel à Kafka, il inclut plusieurs informations dans les métadonnées du message pour lier ce message à la transaction. Les informations clés sont :
 
-2. Réplication et Gestion des Offsets
-MM2 utilise des topics internes pour gérer les offsets et l'état de la réplication. Par exemple, le suivi des offsets est géré dans des topics comme __mm2-offset-syncs ou __mm2-checkpoints. Cependant, cette gestion des offsets n’est pas transactionnelle. Cela signifie que :
+transactionalId : L’ID de la transaction. C’est ce qui lie les messages dans une même transaction.
 
-Lorsque MM2 écrit un message dans le cluster cible, il ne garantit pas que l’offset du message sera aussi enregistré dans le même contexte transactionnel. Si une erreur survient après l’écriture du message mais avant la mise à jour de l’offset, des duplications ou des pertes peuvent se produire.
+producerId : L'identifiant du producteur.
 
-En d’autres termes, les transactions Kafka permettent de gérer de manière atomique les messages et leurs offsets, mais MM2 ne les utilise pas pour garantir que les écritures et les offsets sont validés dans la même transaction. C’est un élément clé pour le modèle exactly-once, et c’est là que MM2 diffère d'un connecteur Kafka Connect traditionnel qui pourrait utiliser des transactions pour garantir cette atomisation.
+producerEpoch : Version du producteur, utilisé pour garantir l'unicité de l'ID du producteur sur plusieurs sessions.
 
-3. Transactions Kafka dans MM2
-Bien que le transactional.id soit spécifié dans la configuration MM2, il est principalement utilisé pour garantir l’idempotence dans les écritures des producteurs Kafka (empêchant les doublons en cas de redémarrage ou de re-émission des messages). Cependant, cela ne suffit pas à garantir les semantiques exactly-once :
+Ces informations sont intégrées dans les headers du message Kafka, et c'est ce que Kafka utilise pour identifier les messages qui font partie d'une même transaction.
 
-Transactional Producers dans MM2 : Ils sont configurés pour envoyer des messages de manière idempotente, mais MM2 n’utilise pas encore les transactions Kafka pour assurer que l'envoi de messages et la gestion des offsets soient effectués dans une transaction unique.
+2. Le rôle du TransactionMarker
+Le TransactionMarker est un enregistrement spécial qui contient des informations sur la transaction, telles que l’ID de la transaction (transactionalId), le producerId et le type du marker (soit COMMIT soit ABORT).
 
-Gestion des offsets : Les offsets sont stockés et synchronisés entre les clusters source et cible, mais la mise à jour des offsets n’est pas transactionnelle dans MM2, ce qui compromet les garanties de exactly-once.
+Lorsque Kafka consomme des messages, il peut utiliser ces informations pour savoir si un message appartient à une transaction, et vérifier l'état de cette transaction (commité ou avorté). Ce TransactionMarker indique à Kafka s’il doit livrer ou ignorer les messages précédemment produits dans cette transaction.
 
-4. Complexité dans l’Intégration des Transactions
-Intégrer les transactions Kafka dans MM2 poserait plusieurs défis, notamment :
+3. Comment le consumer sait-il qu’un message appartient à une transaction ?
+Voici la logique en détail :
 
-Synchronisation des offsets : Si MM2 devait utiliser le transactional.id pour garantir les semantiques exactly-once, il devrait garantir que les offsets et les messages soient validés ensemble dans la même transaction. Cela nécessiterait une révision majeure de la logique de gestion des offsets.
+Le producteur envoie des messages transactionnels avec les métadonnées appropriées (transactionalId, producerId, producerEpoch).
 
-Impact sur les performances : L’ajout de transactions Kafka pour gérer à la fois les messages et les offsets dans MM2 pourrait entraîner une surcharge importante sur les performances, notamment en termes de latence et de débit, ce qui serait problématique pour les cas d’utilisation en temps réel.
+Kafka stocke ces messages dans la partition. Chaque message a l'offset X dans la partition.
 
-5. Conclusion
-Bien que transactional.id soit pris en compte par MM2 pour l'idempotence, il n’est pas utilisé de manière complète pour gérer les transactions sur les messages et les offsets simultanément. Pour garantir les semantiques exactly-once, MM2 devrait adopter une approche plus intégrée, utilisant des transactions Kafka pour coordonner à la fois l'écriture des messages et la gestion des offsets.
+Lorsque le producteur termine sa transaction :
+
+Kafka enregistre un TransactionMarker pour cette transaction (commit ou abort) dans la partition.
+
+Ce TransactionMarker contient l'ID de la transaction, le producerId, et le type de l’opération (commit ou abort).
+
+Quand un consumer en read_committed lit un message à l'offset X, Kafka fait :
+
+Il vérifie si le message fait partie d'une transaction en utilisant les métadonnées (transactionalId, producerId, etc.).
+
+Kafka lit le log des partitions pour retrouver un TransactionMarker associé à cette transaction et déterminer l’état de la transaction.
+
+Si la transaction est commité, le consumer recevra le message à l'offset X.
+
+Si la transaction est abortée, le message à l'offset X est ignoré.
