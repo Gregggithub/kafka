@@ -1,0 +1,55 @@
+---
+- name: Comparaison de deux fichiers JSON
+  hosts: localhost
+  gather_facts: false
+  vars:
+    json1_path: "./fichier1.json"
+    json2_path: "./fichier2.json"
+
+  tasks:
+
+    - name: Lire le premier fichier JSON
+      slurp:
+        src: "{{ json1_path }}"
+      register: fichier1_raw
+
+    - name: Lire le second fichier JSON
+      slurp:
+        src: "{{ json2_path }}"
+      register: fichier2_raw
+
+    - name: Convertir les fichiers JSON en dictionnaires
+      set_fact:
+        json1: "{{ fichier1_raw.content | b64decode | from_json }}"
+        json2: "{{ fichier2_raw.content | b64decode | from_json }}"
+
+    - name: Trouver les clés présentes dans json1 mais absentes dans json2
+      set_fact:
+        keys_only_in_json1: "{{ json1.keys() | difference(json2.keys()) }}"
+
+    - name: Trouver les clés présentes dans json2 mais absentes dans json1
+      set_fact:
+        keys_only_in_json2: "{{ json2.keys() | difference(json1.keys()) }}"
+
+    - name: Trouver les clés communes avec des valeurs différentes
+      set_fact:
+        keys_with_diff_values: >-
+          {{
+            json1.keys() | intersect(json2.keys()) |
+            selectattr('', 'defined') |
+            selectattr('', '!=', attribute=json2) |
+            select('select', 'json1[item] != json2[item]') |
+            list
+          }}
+
+    - name: Afficher les clés uniquement dans json1
+      debug:
+        var: keys_only_in_json1
+
+    - name: Afficher les clés uniquement dans json2
+      debug:
+        var: keys_only_in_json2
+
+    - name: Afficher les clés communes avec des valeurs différentes
+      debug:
+        var: keys_with_diff_values
