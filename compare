@@ -1,4 +1,4 @@
-- name: Comparaison de deux fichiers JSON
+- name: Comparaison des valeurs pour les clés communes
   hosts: localhost
   gather_facts: false
   vars:
@@ -6,52 +6,38 @@
     file2: "./file2.json"
 
   tasks:
-    - name: Charger le contenu de file1.json
+    - name: Charger file1.json
       ansible.builtin.include_vars:
         file: "{{ file1 }}"
         name: json1
 
-    - name: Charger le contenu de file2.json
+    - name: Charger file2.json
       ansible.builtin.include_vars:
         file: "{{ file2 }}"
         name: json2
 
-    - name: Obtenir les clés uniquement dans file1
+    - name: Identifier les clés communes
       set_fact:
-        only_in_file1: "{{ json1.keys() | difference(json2.keys()) }}"
+        common_keys: "{{ json1.keys() | intersect(json2.keys()) | list }}"
 
-    - name: Obtenir les clés uniquement dans file2
+    - name: Initialiser la liste des différences
       set_fact:
-        only_in_file2: "{{ json2.keys() | difference(json1.keys()) }}"
+        value_differences: []
 
-    - name: Obtenir les clés communes
-      set_fact:
-        common_keys: "{{ json1.keys() | intersect(json2.keys()) }}"
-
-    - name: Trouver les différences de valeurs
-      set_fact:
-        different_values: >-
-          {{
-            common_keys | selectattr(
-              'json1[item] != json2[item]', 'true'
-            ) | list
-          }}
+    - name: Comparer les valeurs pour chaque clé commune
       vars:
-        item: "{{ item }}"
+        current_val1: "{{ json1[item] }}"
+        current_val2: "{{ json2[item] }}"
+      loop: "{{ common_keys }}"
+      when: json1[item] != json2[item]
+      set_fact:
+        value_differences: "{{ value_differences + [ { 'key': item, 'file1': current_val1, 'file2': current_val2 } ] }}"
 
-    - name: Afficher les clés uniquement dans file1
-      debug:
-        msg: "Clés présentes uniquement dans file1.json : {{ only_in_file1 }}"
-
-    - name: Afficher les clés uniquement dans file2
-      debug:
-        msg: "Clés présentes uniquement dans file2.json : {{ only_in_file2 }}"
-
-    - name: Afficher les valeurs différentes
+    - name: Afficher les différences de valeurs
       debug:
         msg: >-
-          {% for key in different_values %}
-          Clé : {{ key }}
-            - Valeur dans file1 : {{ json1[key] }}
-            - Valeur dans file2 : {{ json2[key] }}
+          {% for diff in value_differences %}
+          Clé : {{ diff.key }}
+            - Valeur dans file1 : {{ diff.file1 }}
+            - Valeur dans file2 : {{ diff.file2 }}
           {% endfor %}
