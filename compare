@@ -1,6 +1,5 @@
 {% for element in myList %}
-{% set n = element|length %}
-{% for key, value in element.items() %}
-{{ key }}: {{ value }}{% if not loop.last %},{% endif %}
+{% for key in element.keys() %}
+{{ key }}: "{{ element[key] }}"{% if not loop.last %},{% endif %}
 {% endfor %}
 {% endfor %}
