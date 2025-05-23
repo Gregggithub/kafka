@@ -1,4 +1,5 @@
 {% for element in myList %}
-# TYPE: {{ element.__class__.__name__ }}
-# VALUE: {{ element }}
+{% for key in element.keys() %}
+{{ key }}: "{{ element[key] }}"{% if not loop.last %},{% endif %}
+{% endfor %}
 {% endfor %}
