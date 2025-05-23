@@ -1,43 +1,6 @@
-- name: Comparaison des valeurs pour les clés communes
-  hosts: localhost
-  gather_facts: false
-  vars:
-    file1: "./file1.json"
-    file2: "./file2.json"
-
-  tasks:
-    - name: Charger file1.json
-      ansible.builtin.include_vars:
-        file: "{{ file1 }}"
-        name: json1
-
-    - name: Charger file2.json
-      ansible.builtin.include_vars:
-        file: "{{ file2 }}"
-        name: json2
-
-    - name: Identifier les clés communes
-      set_fact:
-        common_keys: "{{ json1.keys() | intersect(json2.keys()) | list }}"
-
-    - name: Initialiser la liste des différences
-      set_fact:
-        value_differences: []
-
-    - name: Comparer les valeurs pour chaque clé commune
-      vars:
-        current_val1: "{{ json1[item] }}"
-        current_val2: "{{ json2[item] }}"
-      loop: "{{ common_keys }}"
-      when: json1[item] != json2[item]
-      set_fact:
-        value_differences: "{{ value_differences + [ { 'key': item, 'file1': current_val1, 'file2': current_val2 } ] }}"
-
-    - name: Afficher les différences de valeurs
-      debug:
-        msg: >-
-          {% for diff in value_differences %}
-          Clé : {{ diff.key }}
-            - Valeur dans file1 : {{ diff.file1 }}
-            - Valeur dans file2 : {{ diff.file2 }}
-          {% endfor %}
+{% for element in myList %}
+{% set n = element|length %}
+{% for key, value in element.items() %}
+{{ key }}: {{ value }}{% if not loop.last %},{% endif %}
+{% endfor %}
+{% endfor %}
