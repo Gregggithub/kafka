@@ -1,0 +1,24 @@
+🔴 eager — Rééquilibrage total immédiat
+Le mode eager est le protocole de coordination historique de Kafka Connect. Il fonctionne selon un modèle de rééquilibrage intégral : dès qu’un événement modifie la composition du cluster (ex. ajout ou retrait de worker, modification d’un connecteur, crash, etc.), toutes les tâches de tous les connecteurs sont arrêtées et redistribuées. Le groupe Connect se dissout complètement, puis se reforme en réassignant l’ensemble des connecteurs et de leurs tâches à l’ensemble des workers disponibles. Ce comportement garantit une redistribution cohérente et exhaustive, mais il est aussi très disruptif, car les tâches sont systématiquement redémarrées, même si elles ne sont pas concernées par le changement. Ce protocole est simple à implémenter et universellement compatible, mais devient problématique à grande échelle en raison du downtime et de l’instabilité qu’il peut générer.
+
+🟡 compatible — Rééquilibrage coopératif (incrémental)
+Introduit avec Kafka 2.5 (via KIP-415), le mode compatible active le rééquilibrage coopératif. Ce protocole repose sur une approche incrémentale et non bloquante : seules les tâches directement concernées par un changement (modification de configuration, départ d’un worker, etc.) sont arrêtées et réassignées, tandis que les autres continuent de tourner sans interruption. Ce comportement est rendu possible grâce à une nouvelle phase d’assignment différée où les workers renoncent explicitement à certaines tâches plutôt que de les abandonner en bloc. Le résultat est un rééquilibrage fluide, rapide et bien mieux adapté aux environnements de production. Toutefois, pour fonctionner correctement, tous les connecteurs doivent implémenter les interfaces spécifiques au mode coopératif ; sinon, le cluster basculera automatiquement en mode eager.
+
+🔒 sessioned — Rééquilibrage sécurisé par sessions
+Le mode sessioned, introduit via KIP-507, étend le protocole compatible en ajoutant une couche de sécurité basée sur la gestion de sessions mutuellement authentifiées entre les workers Kafka Connect. Chaque worker s’enregistre avec une clé de session qui est distribuée de façon sécurisée via le topic de configuration interne. Cela permet de valider que chaque worker appartient bien au cluster autorisé, limitant ainsi les risques d’intrusion ou de mauvaise configuration. Le rééquilibrage s’effectue de manière coopérative, comme en mode compatible, avec les mêmes avantages en termes de disponibilité, tout en renforçant la sécurité des communications internes (REST endpoints privés). Ce protocole est surtout utilisé dans les contextes sensibles (multi-tenant, cloud, inter-VPC) et demande une configuration plus poussée.
+
+📊 Tableau comparatif — Avantages & Inconvénients
+Protocole	✅ Avantages	❌ Inconvénients
+eager	- Simple à comprendre
+- Compatibilité universelle	- Rééquilibrage total à chaque changement
+- Downtime élevé
+- Scalabilité limitée
+compatible	- Rééquilibrage partiel et rapide
+- Haute disponibilité
+- Bonne scalabilité	- Tous les connecteurs doivent être compatibles
+- Moins trivial à diagnostiquer
+sessioned	- Sécurité renforcée
+- Rééquilibrage coopératif
+- Sessions contrôlées	- Complexité de configuration
+- Nécessite coordination des clés/sessions
+- Moins largement supporté
