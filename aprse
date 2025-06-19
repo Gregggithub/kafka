@@ -1,0 +1,58 @@
+startDelaySeconds: 0
+hostPort: 0
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Kafka Connect: connector metrics
+  - pattern: 'kafka.connect:type=connector-metrics,connector=(.+),.*'
+    name: kafka_connect_connector_$2
+    labels:
+      connector: "$1"
+
+  # Kafka Connect: task metrics
+  - pattern: 'kafka.connect:type=task-metrics,connector=(.+),task=(\d+),.*'
+    name: kafka_connect_task_$3
+    labels:
+      connector: "$1"
+      task: "$2"
+
+  # Kafka Connect: worker metrics
+  - pattern: 'kafka.connect:type=connect-worker-metrics'
+    name: kafka_connect_worker_$0
+
+  # MM2: replication metrics
+  - pattern: 'kafka.connect.mirror:type=MirrorHeartbeatConnector,.*'
+    name: kafka_mm2_heartbeat_$0
+
+  - pattern: 'kafka.connect.mirror:type=MirrorSourceConnector,.*'
+    name: kafka_mm2_source_$0
+
+  - pattern: 'kafka.connect.mirror:type=MirrorCheckpointConnector,.*'
+    name: kafka_mm2_checkpoint_$0
+
+  - pattern: 'kafka.connect.mirror:type=ReplicationPolicy,.*'
+    name: kafka_mm2_policy_$0
+
+  # JVM Memory usage
+  - pattern: 'java.lang:type=Memory'
+    name: jvm_memory_$0
+
+  - pattern: 'java.lang:type=MemoryPool,name=(.*)'
+    name: jvm_memory_pool_$1
+    labels:
+      pool: "$1"
+
+  # JVM GC
+  - pattern: 'java.lang:type=GarbageCollector,name=(.*)'
+    name: jvm_gc_$1
+    labels:
+      collector: "$1"
+
+  # JVM Threads
+  - pattern: 'java.lang:type=Threading'
+    name: jvm_threads_$0
+
+  # JVM CPU Load
+  - pattern: 'java.lang:type=OperatingSystem'
+    name: jvm_os_$0
