@@ -1,0 +1,31 @@
+#!/bin/bash
+
+WORKDIR="/home/kafka/custom"
+JAR_PATH="$WORKDIR/mm2-lag-exporter-1.0.0-executable.jar"
+LOG_DIR="$WORKDIR/logs"
+LOG_FILE="$LOG_DIR/mm2-lag-exporter.log"
+
+mkdir -p "$LOG_DIR"
+cd "$WORKDIR" || exit 1
+
+exec java -jar "$JAR_PATH" \
+  --server.port=9090 \
+  --management.endpoints.web.exposure.include=prometheus,health \
+  --management.endpoint.prometheus.enabled=true \
+  >> "$LOG_FILE" 2>&1
+
+
+[Unit]
+Description=MM2 Lag Exporter
+After=network.target
+
+[Service]
+Type=simple
+User=kafka
+WorkingDirectory=/home/kafka/custom
+ExecStart=/home/kafka/custom/start-mm2-exporter.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
