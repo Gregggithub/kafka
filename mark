@@ -1,21 +1,25 @@
----
-### 🧾 Informations techniques
-
-**📦 Nom de l'application**  
+{panel:title=📦 Nom de l'application|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
 SuperApp
+{panel}
 
-**🆚 Version déployée**  
-`v1.4.7`
+{panel:title=🆚 Version|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
+v1.4.7
+{panel}
 
-**🌐 Environnement**  
+{panel:title=🌐 Environnement|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
 Production
+{panel}
 
-**🧑‍💻 Responsable**  
+{panel:title=🧑‍💻 Responsable|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
 Jean Dupont
+{panel}
 
-**📅 Date de déploiement**  
-07 juillet 2025
 
-**📝 Description**  
-SuperApp est une application web destinée à la gestion des flux logistiques. Elle intègre un moteur de règles et un module d’alerting en temps réel.
----
+
+| 🗝️ **Clé**                 | 📝 **Valeur**   |
+| --------------------------- | --------------- |
+| 📦 **Nom de l'application** | SuperApp        |
+| 🆚 **Version**              | `v1.4.7`        |
+| 🌐 **Environnement**        | Production      |
+| 🧑‍💻 **Responsable**       | Jean Dupont     |
+| 📅 **Date de déploiement**  | 05 juillet 2025 |
