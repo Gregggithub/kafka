@@ -23,4 +23,4 @@
 </Configuration>
 
 
-xport KAFKA_LOG4J_OPTS="-Dlog4j.configurationFile=/chemin/vers/log4j2.xml"
+export KAFKA_LOG4J_OPTS="-Dlog4j.configurationFile=/chemin/vers/log4j2.xml"
