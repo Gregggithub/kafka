@@ -1,0 +1,26 @@
+<Configuration status="WARN">
+  <Appenders>
+    <RollingFile name="LogFile" fileName="/var/log/kafka/connect.log"
+                 filePattern="/var/log/kafka/connect-%d{yyyy-MM-dd}.log.gz">
+      <PatternLayout pattern="[%d{ISO8601}] %-5p %c - %m%n"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1"/>
+      </Policies>
+      <DefaultRolloverStrategy>
+        <Delete basePath="/var/log/kafka" maxDepth="1">
+          <IfFileName glob="connect-*.log.gz"/>
+          <IfLastModified age="7d"/>
+        </Delete>
+      </DefaultRolloverStrategy>
+    </RollingFile>
+  </Appenders>
+
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="LogFile"/>
+    </Root>
+  </Loggers>
+</Configuration>
+
+
+xport KAFKA_LOG4J_OPTS="-Dlog4j.configurationFile=/chemin/vers/log4j2.xml"
