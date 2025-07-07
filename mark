@@ -1,25 +1,55 @@
-{panel:title=📦 Nom de l'application|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
-SuperApp
-{panel}
-
-{panel:title=🆚 Version|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
-v1.4.7
-{panel}
-
-{panel:title=🌐 Environnement|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
-Production
-{panel}
-
-{panel:title=🧑‍💻 Responsable|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f4f4}
-Jean Dupont
-{panel}
+| Élément                | Icône | Alternative |
+| ---------------------- | ----- | ----------- |
+| Application            | 📦    | 🧩 🪟 📱    |
+| Microservice           | 🧩    | 🧱 🔌       |
+| API / Interface        | 🔗    | 🌐 🧪 🛠️   |
+| Frontend               | 🎨    | 🖥️ 🪟      |
+| Backend                | 🖧    | 🧰 🧠       |
+| Web                    | 🌐    | 🕸️ 🧭      |
+| Mobile                 | 📱    | 📲          |
+| Base de données        | 🗄️   | 🧮 🛢️      |
+| Flux Kafka / MQ        | 🔄    | 📡 📨 🔁    |
+| Authentification / SSO | 🔐    | 🛡️ 🔏      |
 
 
+| Élément                       | Icône | Alternative |
+| ----------------------------- | ----- | ----------- |
+| Infrastructure                | 🏗️   | 🧱 🏢 🖧    |
+| Environnement (prod/dev/test) | 🌍    | 🧪 🏭 🧬    |
+| Container / Docker            | 🐳    | 📦 🧱       |
+| Kubernetes / Orchestrateur    | ☸️    | 📘 🧭       |
+| Pipeline CI/CD                | 🛠️   | 🏗️ ⚙️ 🔧   |
+| Déploiement                   | 📦    | 🚀          |
+| VM / Machine virtuelle        | 🖥️   | 💻 🧮       |
+| Cloud                         | ☁️    | 🌩️ 🔁      |
 
-| 🗝️ **Clé**                 | 📝 **Valeur**   |
-| --------------------------- | --------------- |
-| 📦 **Nom de l'application** | SuperApp        |
-| 🆚 **Version**              | `v1.4.7`        |
-| 🌐 **Environnement**        | Production      |
-| 🧑‍💻 **Responsable**       | Jean Dupont     |
-| 📅 **Date de déploiement**  | 05 juillet 2025 |
+
+| Élément          | Icône | Alternative |
+| ---------------- | ----- | ----------- |
+| Version          | 🆚    | 🔖 📌 🧾    |
+| Nom              | 🏷️   | 📛 🆔       |
+| Description      | 📝    | 📃 🗒️      |
+| Statut           | 🚦    | 🔴🟡🟢 ✅ ❌  |
+| Date / Time      | 📅    | ⏰ 🕒        |
+| Auteur / Contact | 👤    | 🧑‍💻 📧    |
+| Équipe           | 👥    | 🧑‍🤝‍🧑    |
+
+
+| Élément     | Icône | Alternative |
+| ----------- | ----- | ----------- |
+| Logs        | 📜    | 🧾 🪵       |
+| Monitoring  | 📈    | 📊 📉       |
+| Erreurs     | ❌     | ⚠️ 🟥       |
+| Alertes     | 🚨    | 🔔 ⚠️       |
+| OK / Succès | ✅     | 🟢 👍       |
+| En cours    | 🔄    | ⏳ 🕐        |
+
+| Élément         | Icône | Alternative |
+| --------------- | ----- | ----------- |
+| Script          | 📜    | 🔧 📄       |
+| Configuration   | ⚙️    | 🛠️ 🔩      |
+| Paramètres      | 🧰    | 🔧          |
+| Build / Compile | 🏗️   | 🛠️         |
+| Repository Git  | 🗂️   | 🧬 🔀       |
+| Branche / Tag   | 🌿    | 🏷️         |
+
