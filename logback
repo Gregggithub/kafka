@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Format de log -->
+    <!-- Propriétés -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" />
     <property name="LOG_PATH" value="logs" />
     <property name="LOG_FILE" value="${LOG_PATH}/mm2-lag-exporter.log" />
 
-    <!-- Console Appender -->
+    <!-- Appender Console -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <!-- File Appender avec rotation quotidienne -->
+    <!-- Appender Fichier avec rotation par taille -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- Fichier journalier -->
-            <fileNamePattern>${LOG_PATH}/mm2-lag-exporter.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- Nombre de jours à conserver -->
-            <maxHistory>7</maxHistory>
-            <!-- Taille max optionnelle : 100 Mo par jour -->
-            <totalSizeCap>1GB</totalSizeCap>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/mm2-lag-exporter.%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>30</maxIndex>
         </rollingPolicy>
+
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
