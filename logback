@@ -1,24 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Format de log personnalisé -->
+    <!-- Format de log -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" />
+    <property name="LOG_PATH" value="logs" />
+    <property name="LOG_FILE" value="${LOG_PATH}/mm2-lag-exporter.log" />
 
-    <!-- Appender console -->
+    <!-- Console Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <!-- Logger racine (root logger) -->
+    <!-- File Appender avec rotation quotidienne -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Fichier journalier -->
+            <fileNamePattern>${LOG_PATH}/mm2-lag-exporter.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- Nombre de jours à conserver -->
+            <maxHistory>7</maxHistory>
+            <!-- Taille max optionnelle : 100 Mo par jour -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger racine -->
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </root>
 
     <!-- Logger spécifique à l'application -->
     <logger name="com.lowes.mm2lag" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </logger>
 
 </configuration>
