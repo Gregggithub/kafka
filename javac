@@ -1,0 +1,20 @@
+import javax.net.ssl.HttpsURLConnection;
+import java.net.URL;
+
+public class TrustStoreTest {
+    public static void main(String[] args) {
+        try {
+            // Connexion à un site avec certificat valide
+            URL url = new URL("https://www.google.com");
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.connect();
+            System.out.println("✅ Connexion réussie");
+        } catch (Exception e) {
+            System.out.println("❌ Erreur : " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+
+JAVA_TOOL_OPTIONS="-Djavax.net.debug=ssl,trustmanager" /chemin/vers/java-17.X.X/bin/java TrustStoreTest
