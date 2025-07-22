@@ -1,0 +1,31 @@
+---
+- name: Garder uniquement les 10 fichiers les plus récents dans un répertoire
+  hosts: all
+  gather_facts: no
+  vars:
+    target_directory: "/chemin/vers/le/repertoire"
+    files_to_keep: 10
+
+  tasks:
+
+    - name: Trouver tous les fichiers dans le répertoire
+      find:
+        paths: "{{ target_directory }}"
+        file_type: file
+        age_stamp: mtime
+      register: found_files
+
+    - name: Trier les fichiers par date de modification (plus récents en premier)
+      set_fact:
+        sorted_files: "{{ found_files.files | sort(attribute='mtime', reverse=true) }}"
+
+    - name: Définir les fichiers à supprimer (au-delà des 10 plus récents)
+      set_fact:
+        files_to_delete: "{{ sorted_files[files_to_keep:] }}"
+
+    - name: Supprimer les anciens fichiers
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ files_to_delete }}"
+      when: files_to_delete | length > 0
