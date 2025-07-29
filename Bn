@@ -1,0 +1,14 @@
+---
+- name: Extraire des noms depuis une chaîne
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ma_chaine: "(Toto,QUANTITY=1,FREE=A) AND (titi,QUANTITY=1,FREE=A)"
+  tasks:
+    - name: Extraire les noms
+      set_fact:
+        noms: "{{ ma_chaine | regex_findall('\\(([^,]+),QUANTITY=.*?\\)') }}"
+
+    - name: Afficher la liste des noms
+      debug:
+        var: noms
