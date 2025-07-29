@@ -1,0 +1,2 @@
+\(([^,]+),QUANTITY=.*?\)              # Capture 1er nom entre parenthèses
+(\s+AND\s+\(([^,]+),QUANTITY=.*?\))?  # Optionnel : 'AND' suivi du 2e nom (capture 3)
