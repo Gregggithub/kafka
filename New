@@ -1,0 +1,17 @@
+- name: Update AutoSys QR value if needed
+  hosts: autosys_server
+  vars:
+    resource_name: my_resource
+    desired_value: 5
+  tasks:
+
+    - name: Get current available value of the resource
+      shell: |
+        autorep -R {{ resource_name }} | awk '/Available:/ { print $2 }'
+      register: current_value
+      changed_when: false
+
+    - name: Set QR available value if it differs
+      shell: chres -n {{ resource_name }} -a {{ desired_value }}
+      when: current_value.stdout | int != desired_value
+      changed_when: true
