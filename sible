@@ -1,0 +1,20 @@
+- name: Ajouter une clé base64 pour chaque keystore
+  set_fact:
+    mm2_instance: >-
+      {{
+        mm2_instance | map('combine',
+          {
+            'mm2lag_sslConsumer': {
+              'source': {
+                'keystore': (
+                  item.mm2lag_sslConsumer.source.keystore
+                  | combine({'key_b64': (item.mm2lag_sslConsumer.source.keystore.file | b64encode)})
+                )
+              }
+            }
+          }, recursive=True
+        ) | list
+      }}
+  loop: "{{ mm2_instance }}"
+  loop_control:
+    loop_var: item
