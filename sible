@@ -1,20 +1,45 @@
-- name: Ajouter une clé base64 pour chaque keystore
+- name: Init liste reconstruite
   set_fact:
-    mm2_instance: >-
+    new_mm2_instance: []
+
+- name: Ajoute key_b64 dans chaque keystore (à partir du champ "file")
+  set_fact:
+    new_mm2_instance: "{{ new_mm2_instance + [ patched ] }}"
+  vars:
+    b64: "{{ item.mm2lag_sslConsumer.source.keystore.file | string | b64encode }}"
+    patched: >-
       {{
-        mm2_instance | map('combine',
-          {
-            'mm2lag_sslConsumer': {
-              'source': {
-                'keystore': (
-                  item.mm2lag_sslConsumer.source.keystore
-                  | combine({'key_b64': (item.mm2lag_sslConsumer.source.keystore.file | b64encode)})
+        item
+        | combine(
+            {
+              'mm2lag_sslConsumer': (
+                item.mm2lag_sslConsumer
+                | combine(
+                    {
+                      'source': (
+                        item.mm2lag_sslConsumer.source
+                        | combine(
+                            {
+                              'keystore': (
+                                item.mm2lag_sslConsumer.source.keystore
+                                | combine({'key_b64': b64})
+                              )
+                            },
+                            recursive=True
+                        )
+                      )
+                    },
+                    recursive=True
                 )
-              }
-            }
-          }, recursive=True
-        ) | list
+              )
+            },
+            recursive=True
+          )
       }}
   loop: "{{ mm2_instance }}"
   loop_control:
-    loop_var: item
+    label: "{{ item.name }}"
+
+- name: Remplace la variable d'origine
+  set_fact:
+    mm2_instance: "{{ new_mm2_instance }}"
