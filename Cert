@@ -1,0 +1,6 @@
+# Client cert + clé privée depuis le keystore
+openssl pkcs12 -in keystore.p12 -clcerts -nokeys -out client-cert.pem
+openssl pkcs12 -in keystore.p12 -nocerts -nodes -out client-key.pem
+
+# CA depuis le truststore
+openssl pkcs12 -in truststore.p12 -cacerts -nokeys -out ca-cert.pem
