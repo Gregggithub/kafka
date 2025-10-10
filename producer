@@ -1,3 +1,29 @@
+def main():
+    ssl_context = create_ssl_context()
+
+    producer = KafkaProducer(
+        bootstrap_servers=[BROKER],
+        security_protocol=SECURITY_PROTOCOL,
+        sasl_mechanism=SASL_MECHANISM,
+        sasl_plain_username=SASL_USERNAME,
+        sasl_plain_password=SASL_PASSWORD,
+        ssl_context=ssl_context,
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        key_serializer=lambda k: str(k).encode("utf-8") if k else None,
+        retries=3,  # quelques tentatives en cas d'échec temporaire
+        acks="all"
+    )
+
+    print(f"Connexion sécurisée SASL_SSL au broker {BROKER}")
+    print(f"Envoi des messages du fichier '{FICHIER}' vers le topic '{TOPIC}'...\n")
+
+    try:
+        with open(FICHIER, "r", encoding="utf-8") as f:
+            for i, ligne in enumerate(f):
+                ligne = ligne.strip()
+                if not ligne:
+                    continue
+
                 message = {"index": i, "ligne": ligne}
                 try:
                     future = producer.send(TOPIC, key=i, value=message)
@@ -12,3 +38,11 @@
                     # break
 
                 time.sleep(DELAY)
+
+        try:
+            producer.flush(timeout=10)
+        except Exception as flush_error:
+            print("❌ Erreur lors du flush des messages restants :")
+            traceback.print_exc()
+
+        print("\n✅ Fin du traitement.")
