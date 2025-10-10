@@ -1,0 +1,72 @@
+from kafka import KafkaProducer
+import json
+import ssl
+import time
+
+# --- Configuration Kafka ---
+BROKER = "mon-broker.kafka:9093"   # Adresse du broker
+TOPIC = "mon_topic"                # Topic Kafka
+FICHIER = "donnees.txt"            # Fichier source
+
+# --- Authentification SASL_SSL ---
+SASL_MECHANISM = "PLAIN"           # Ou SCRAM-SHA-512, selon ton cluster
+SECURITY_PROTOCOL = "SASL_SSL"
+SASL_USERNAME = "mon_utilisateur"
+SASL_PASSWORD = "mon_mot_de_passe"
+
+# --- Fichiers SSL ---
+TRUSTSTORE_PATH = "/chemin/vers/truststore.pem"  # Le fichier PEM contenant les certificats de confiance
+
+# --- Délai entre envois ---
+DELAY = 1
+
+def create_ssl_context():
+    """
+    Crée un contexte SSL à partir du truststore.
+    """
+    context = ssl.create_default_context(cafile=TRUSTSTORE_PATH)
+    context.check_hostname = True
+    context.verify_mode = ssl.CERT_REQUIRED
+    return context
+
+def main():
+    ssl_context = create_ssl_context()
+
+    # Création du producer Kafka
+    producer = KafkaProducer(
+        bootstrap_servers=[BROKER],
+        security_protocol=SECURITY_PROTOCOL,
+        sasl_mechanism=SASL_MECHANISM,
+        sasl_plain_username=SASL_USERNAME,
+        sasl_plain_password=SASL_PASSWORD,
+        ssl_context=ssl_context,
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        key_serializer=lambda k: str(k).encode("utf-8") if k else None
+    )
+
+    print(f"Connexion sécurisée SASL_SSL au broker {BROKER}")
+    print(f"Envoi des messages du fichier '{FICHIER}' vers le topic '{TOPIC}'...\n")
+
+    try:
+        with open(FICHIER, "r", encoding="utf-8") as f:
+            for i, ligne in enumerate(f):
+                ligne = ligne.strip()
+                if not ligne:
+                    continue
+
+                message = {"index": i, "ligne": ligne}
+                producer.send(TOPIC, key=i, value=message)
+                print(f"[✓] Message {i} envoyé : {message}")
+                time.sleep(DELAY)
+
+        producer.flush()
+        print("\n✅ Tous les messages ont été envoyés avec succès.")
+
+    except Exception as e:
+        print(f"❌ Erreur : {e}")
+
+    finally:
+        producer.close()
+
+if __name__ == "__main__":
+    main()
