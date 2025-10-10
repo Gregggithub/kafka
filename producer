@@ -42,11 +42,13 @@ def main():
         ssl_context=ssl_context,
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         key_serializer=lambda k: str(k).encode("utf-8") if k else None,
-        retries=3,  # quelques tentatives en cas d'échec temporaire
+        compression_type="gzip",  # ✅ Compression activée
+        retries=3,
         acks="all"
     )
 
     print(f"Connexion sécurisée SASL_SSL au broker {BROKER}")
+    print(f"Compression activée : gzip")
     print(f"Envoi des messages du fichier '{FICHIER}' vers le topic '{TOPIC}'...\n")
 
     try:
@@ -59,15 +61,12 @@ def main():
                 message = {"index": i, "ligne": ligne}
                 try:
                     future = producer.send(TOPIC, key=i, value=message)
-                    # On attend le résultat pour détecter les erreurs
                     record_metadata = future.get(timeout=10)
-                    print(f"[✓] Message {i} envoyé : partition={record_metadata.partition}, offset={record_metadata.offset}")
+                    print(f"[✓] Message {i} envoyé (partition={record_metadata.partition}, offset={record_metadata.offset})")
 
                 except Exception as send_error:
                     print(f"❌ Erreur lors de l'envoi du message {i} : {send_error}")
                     traceback.print_exc()
-                    # Optionnel : continuer ou interrompre selon le besoin
-                    # break
 
                 time.sleep(DELAY)
 
