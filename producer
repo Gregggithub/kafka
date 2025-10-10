@@ -1,3 +1,35 @@
+from kafka import KafkaProducer
+import json
+import ssl
+import time
+import traceback
+
+# --- Configuration Kafka ---
+BROKER = "mon-broker.kafka:9093"
+TOPIC = "mon_topic"
+FICHIER = "donnees.txt"
+
+# --- Authentification SASL_SSL ---
+SASL_MECHANISM = "PLAIN"  # ou SCRAM-SHA-512 selon ton cluster
+SECURITY_PROTOCOL = "SASL_SSL"
+SASL_USERNAME = "mon_utilisateur"
+SASL_PASSWORD = "mon_mot_de_passe"
+
+# --- Fichiers SSL ---
+TRUSTSTORE_PATH = "/chemin/vers/truststore.pem"
+
+# --- Délai entre envois ---
+DELAY = 1
+
+def create_ssl_context():
+    """
+    Crée un contexte SSL à partir du truststore.
+    """
+    context = ssl.create_default_context(cafile=TRUSTSTORE_PATH)
+    context.check_hostname = True
+    context.verify_mode = ssl.CERT_REQUIRED
+    return context
+
 def main():
     ssl_context = create_ssl_context()
 
@@ -46,3 +78,13 @@ def main():
             traceback.print_exc()
 
         print("\n✅ Fin du traitement.")
+
+    except Exception as global_error:
+        print("❌ Erreur inattendue dans le producer :")
+        traceback.print_exc()
+
+    finally:
+        producer.close()
+
+if __name__ == "__main__":
+    main()
