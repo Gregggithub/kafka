@@ -1,0 +1,3 @@
+<source>.consumer.fetch.max.wait.ms=500
+<source>.consumer.fetch.min.bytes=1
+<source>.consumer.metadata.max.age.ms=10000
